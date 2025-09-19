@@ -137,7 +137,6 @@ class DailyNoteGeneralNoteRedactedBase(BaseModel):
     full_description: Optional[str] = None
     note: Optional[str] = None
     rating_1: Optional[int] = None
-    rating_2: Optional[float] = None
     created_on: Optional[str] = None
     notes_and_thoughts: Optional[str] = None
     urgency_flag: Optional[str] = None
