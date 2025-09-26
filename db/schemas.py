@@ -1,6 +1,47 @@
 from pydantic import BaseModel
 from typing import Optional, List
 
+class DashDataModel(BaseModel):
+    # Custom aliased columns
+    accident_id: Optional[int] = None
+    incident_category: Optional[str] = None
+    aai_created_on: Optional[str] = None
+    service_user_id: Optional[int] = None
+    first_mood: Optional[str] = None
+    second_mood: Optional[str] = None
+
+    # Columns from serviceuser_redacted (su.*)
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    dob: Optional[str] = None
+    status: Optional[int] = None
+    auth_user_id: Optional[float] = None
+    min_fluid: Optional[float] = None
+    track_fluid: Optional[int] = None
+    flag_bowel: Optional[int] = None
+    age: Optional[float] = None
+    LOS_days: Optional[float] = None
+
+    # Columns from dailynote_accidentsincidents_redacted (aai.*)
+    incident_description: Optional[str] = None
+    incident_time: Optional[str] = None
+    aggressive: Optional[int] = None
+    toward_su: Optional[int] = None
+    toward_staff: Optional[int] = None
+    call_police: Optional[int] = None
+    call_paramedics: Optional[int] = None
+    call_family: Optional[int] = None
+    rating_1: Optional[int] = None
+    rating_2: Optional[float] = None
+    mood_1_id: Optional[int] = None
+    mood_2_id: Optional[float] = None
+    transformer_incident_subject: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+
 # --- DailyNotePersonalCareRedacted Schemas ---
 class DailyNotePersonalCareRedactedBase(BaseModel):
     care_provide: Optional[str] = None
@@ -137,6 +178,7 @@ class DailyNoteGeneralNoteRedactedBase(BaseModel):
     full_description: Optional[str] = None
     note: Optional[str] = None
     rating_1: Optional[int] = None
+    rating_2: Optional[float] = None
     created_on: Optional[str] = None
     notes_and_thoughts: Optional[str] = None
     urgency_flag: Optional[str] = None

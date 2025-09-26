@@ -122,6 +122,7 @@ class DailyNoteGeneralNoteRedacted(Base):
     full_description = Column(Text)
     note = Column(Text)
     rating_1 = Column(BigInteger)
+    rating_2 = Column(Double)
     created_on = Column(String(255), index=True)
     notes_and_thoughts = Column(Text)
     urgency_flag = Column(String(255))
