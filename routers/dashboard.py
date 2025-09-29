@@ -2,9 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import List
-
-from ..db import schemas
-from ..db.dependencies import get_db
+from db import schemas
+from db.dependencies import get_db
 
 router = APIRouter()
 
@@ -24,7 +23,7 @@ def get_dashboard_data_model(db: Session = Depends(get_db)):
             ,su.min_fluid
             ,su.track_fluid
             ,su.flag_bowel
-            ,su.age'
+            ,su.age
             ,su.LOS_days
             ,aai.id as accident_id
             ,aai.transformer_incident_subject as incident_category
@@ -34,7 +33,7 @@ def get_dashboard_data_model(db: Session = Depends(get_db)):
             ,aai.toward_su
             ,aai.toward_staff
             ,aai.call_police 
-            ,aai.all_paramedics
+            ,aai.call_paramedics
             ,aai.call_family
             ,aai.rating_1
             ,aai.rating_2
