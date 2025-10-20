@@ -5,6 +5,7 @@ from db.dependencies import get_db
 from google import genai
 from google.genai import types
 from declarations.accidents import get_accident_count_tool
+from routers.accidents import get_accidents_count
 from config import system_instructions
 from dotenv import load_dotenv
 import os, logging
@@ -14,7 +15,10 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-TOOL_REGISTRY = {"get_count_accidents": get_accident_count_tool}
+TOOL_REGISTRY = {
+    "get_accidents_count": get_accidents_count
+}
+
 
 class ChatRequest(BaseModel):
     message: str
@@ -25,13 +29,6 @@ def _invoke_tool(tool_obj: Any, db: Session, args: dict):
         if code and "db" in code.co_varnames:
             return tool_obj(db=db, **args)
         return tool_obj(**args)
-    for attr in ("func", "fn", "implementation", "run", "callable"):
-        cand = getattr(tool_obj, attr, None)
-        if callable(cand):
-            code = getattr(cand, "__code__", None)
-            if code and "db" in code.co_varnames:
-                return cand(db=db, **args)
-            return cand(**args)
     raise HTTPException(status_code=500, detail=f"Tool not callable: {type(tool_obj)}")
 
 def handle_gemini_response(chat, response, db: Session):
