@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from db.database import engine, Base
-from routers import dashboard, notes, mood
+from routers import dashboard, notes, mood, accidents
+from services import gemini
+from fastapi_mcp import FastApiMCP
 
 Base.metadata.create_all(bind=engine)
 
@@ -13,7 +15,15 @@ app = FastAPI(
 app.include_router(notes.router)
 app.include_router(mood.router)
 app.include_router(dashboard.router)
+app.include_router(gemini.router)
 
-@app.get("/", tags=["Root"])
+app.include_router(accidents.router)
+
+@app.get("/", tags=["root"])
 def read_root():
     return {"message": "Welcome to the Pegasus Bloom API. MCP to Follow"}
+
+
+mcp = FastApiMCP(app, include_tags=["root", "tools"])
+mcp.mount()
+
