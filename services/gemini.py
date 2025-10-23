@@ -36,7 +36,7 @@ def chat_with_gemini(request: ChatRequest, db: Session = Depends(get_db)):
             part = response.parts[0]
 
             #step 2 - Check if the model returned a function call
-            if not part.function_call.name:
+            if response.text:
 
                 # No function call, just a simple text response.
                 return {"response": response.text}
