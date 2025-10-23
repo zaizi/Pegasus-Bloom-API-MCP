@@ -24,6 +24,6 @@ def read_root():
     return {"message": "Welcome to the Pegasus Bloom API. MCP to Follow"}
 
 
-mcp = FastApiMCP(app, include_tags=["root", "tools"])
+mcp = FastApiMCP(app, name="Pegasus Bloom MCP", include_tags=["tools"])
 mcp.mount()
 

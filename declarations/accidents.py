@@ -1,8 +1,6 @@
 from google.genai import types
 
-get_accident_count_tool = types.Tool(
-    function_declarations=[
-        types.FunctionDeclaration(
+get_accident_count_tool = types.FunctionDeclaration(
             name="get_accidents_count",
             description="Get the total count of distinct accidents that occurred within a given date range.",
             parameters=types.Schema(
@@ -20,6 +18,4 @@ get_accident_count_tool = types.Tool(
                 required=["start_date", "end_date"]
             )
         )
-    ]
-)
 
