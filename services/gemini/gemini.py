@@ -48,13 +48,13 @@ def chat_with_gemini(request: ChatRequest, db: Session = Depends(get_db)):
             if function_name not in available_tools:
                 raise HTTPException(status_code=500, detail=f"Model requested unknown function: {function_name}")
             
-            # Get the actual Python function from our map
+            # Get the actual Python function from the map
             function_to_call = available_tools[function_name]
             
             # Get the arguments from the model (convert from 'Struct' to 'dict')
             function_args = dict(fc.args)
             function_args['db'] = db
-            # Call our local Python function with the arguments
+            # Call local Python function with the arguments
             function_result = function_to_call(**function_args)
             
             #STEP 4: Send the function's result back to the model
