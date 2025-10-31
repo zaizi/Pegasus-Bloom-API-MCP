@@ -46,8 +46,6 @@ def get_dashboard_data_model(db: Session = Depends(get_db)):
 
         WHERE
             su.age > 0
-            AND
-            su.status = 1
     """
     
 

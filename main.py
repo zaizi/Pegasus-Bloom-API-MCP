@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from db.database import engine, Base
-from routers import dashboard, notes, mood, accidents
+from routers import dashboard, notes, mood, accidents, report_generation
 from services.gemini import gemini
 from fastapi_mcp import FastApiMCP
 
@@ -17,6 +17,7 @@ app.include_router(mood.router)
 app.include_router(dashboard.router)
 app.include_router(gemini.router)
 app.include_router(accidents.router)
+app.include_router(report_generation.router)
 
 @app.get("/", tags=["root"])
 def read_root():

@@ -5,9 +5,9 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-mysql_username = os.getenv("MYSQL_USER")
-mysql_password = os.getenv("MYSQL_PASSWORD")
-mysql_database= os.getenv("MYSQL_DATABASE")
+mysql_username = os.getenv("POSTGRES_USER")
+mysql_password = os.getenv("DB_PASSWORD")
+mysql_database= os.getenv("POSTGRES_DB")
 db_host = os.getenv("DB_HOST", "db")
 
 

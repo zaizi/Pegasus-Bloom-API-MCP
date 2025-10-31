@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db.dependencies import get_db
 from google.genai import types, Client
-from declarations.accidents import get_accident_count_tool
+from declarations.tool_declarations import get_accident_count_tool, generate_report_tool
 from routers.accidents import get_accidents_count
+from routers.report_generation import generate_service_user_report
 from config import system_instructions
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -12,10 +13,11 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-tools = types.Tool(function_declarations=[get_accident_count_tool])
+tools = types.Tool(function_declarations=[get_accident_count_tool, generate_report_tool])
 
 available_tools = {
     "get_accidents_count": get_accidents_count,
+    "generate_service_user_report": generate_service_user_report
 }
 
 
