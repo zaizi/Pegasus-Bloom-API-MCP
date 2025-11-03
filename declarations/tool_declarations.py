@@ -21,7 +21,7 @@ get_accident_count_tool = types.FunctionDeclaration(
 
 generate_report_tool = types.FunctionDeclaration(
             name="generate_service_user_report",
-            description="Generate a report of service user's activity using a start date and end date for all activity ad using their id to identify them.",
+            description="Generate a report of service user's activity using a start date and end date for all activity using their id to identify them.",
             parameters=types.Schema(
                 type=types.Type.OBJECT,
                 properties={

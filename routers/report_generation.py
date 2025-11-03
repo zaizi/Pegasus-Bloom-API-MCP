@@ -2,60 +2,70 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from db.dependencies import get_db
+from typing import  Dict, Any
+from datetime import date
+import logging
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 @router.get("/generate_service_user_report", tags=["tools"])
 def generate_service_user_report(user_id:int, start_date: str, end_date: str, db: Session = Depends(get_db)):
     """
-    Retrieves data for the report used by carehomes staff
+    Retrieves a comprehensive, un-duplicated report of all a service user's
+    activities within a given date range.
     """
-    query_string = text("""
-        SELECT
-            su.id as service_user_id
-            ,su.start_date
-            ,su.end_date
-            ,su.dob
-            ,su.min_fluid
-            ,su.track_fluid
-            ,su.flag_bowel
-            ,su.age
-            ,su.LOS_days
-            ,aai.id as accident_id
-            ,aai.transformer_incident_subject as incident_category
-            ,aai.created_on as aai_created_on
-            ,aai.incident_time
-            ,aai.aggressive
-            ,aai.toward_su
-            ,aai.toward_staff
-            ,aai.call_police 
-            ,aai.call_paramedics
-            ,aai.call_family
-            ,aai.rating_1
-            ,aai.rating_2
-            ,moo1.name as first_mood
-            ,moo2.name as second_mood
-        FROM serviceuser_redacted su
-        LEFT JOIN 
-            dailynote_accidentsincidents_redacted aai on aai.service_user_id = su.id                  
-        LEFT JOIN 
-            dailynote_mood moo1 on aai.mood_1_id = moo1.id
-        LEFT JOIN
-            dailynote_mood moo2 on aai.mood_2_id = moo2.id
-        WHERE
-        su.age > 0                
-        AND su.id = :user_id  
-        AND CAST(su.start_date AS DATE) BETWEEN :start_date AND :end_date  
-        AND CAST(su.end_date AS DATE) BETWEEN :start_date AND :end_date 
-        AND CAST(aai.created_on AS DATE) BETWEEN :start_date AND :end_date
-            
+    
+    #Base query for the service user
+    user_query = text("""
+        SELECT * FROM serviceuser_redacted WHERE id = :user_id
     """)
     
-    result = db.execute(
-        query_string, 
-        {"start_date": start_date, "end_date": end_date, "user_id":user_id}
-    ).first()
+    # Use mappings().first() to get a dict-like object, or None if not found
+    user_result = db.execute(user_query, {"user_id": user_id}).mappings().first()
+
+
+    # This is the base report object we will build
+    report: Dict[str, Any] = {"service_user": dict(user_result)}
+
+    # Define all the tables to query and the key they will have in the final JSON report
+    activity_tables = {
+        "accidents_and_incidents": "dailynote_accidentsincidents_redacted",
+        "personal_care_notes": "dailynote_personalcare_redacted",
+        "medication_notes": "dailynote_medication_redacted",
+        "general_notes": "dailynote_generalnote_redacted",
+        "leisure_activity_notes": "dailynote_leisureactivity_redacted",
+        "contact_log_notes": "dailynote_contactlog_redacted",
+        #No service user id for medication table???
+        #"medication_administration_notes": "dailynote_medicationadministration_redacted",
+        "night_check_notes": "dailynote_nightcheck_redacted",
+        "health_monitoring_notes": "dailynote_healthmonitoring_redacted",
+        "meal_notes": "dailynote_meal_redacted",
+    }
+
     
-    if result:
-        return {"total_accidents": result[0]}
-    return {"total_accidents": 0}
+    for report_key, table_name in activity_tables.items():
+        try:
+            # Use parameterized queries to prevent SQL injection
+            query_string = text(f"""
+                SELECT * FROM {table_name}
+                WHERE
+                    service_user_id = :user_id
+                    AND CAST(created_on AS DATE) BETWEEN :start_date AND :end_date
+            """)
+            
+            params = {"user_id": user_id, "start_date": start_date, "end_date": end_date}
+            
+            results = db.execute(query_string, params).mappings().all()
+            
+            report[report_key] = [dict(row) for row in results]
+            report["today"] = date.today()
+            
+        except Exception as e:
+            # If one table fails, log the error but continue building the report
+            logger.error(f"Error querying table {table_name}: {e}")
+            report[report_key] = {"error": f"Failed to retrieve data from {table_name}."}
+
+    if not report:
+        return {"report": "No data available"}
+    return report

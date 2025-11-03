@@ -8,7 +8,8 @@ from routers.report_generation import generate_service_user_report
 from config import system_instructions
 from pydantic import BaseModel
 from dotenv import load_dotenv
-import os, logging
+import json, decimal, datetime, logging, os
+
 load_dotenv()
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -23,6 +24,17 @@ available_tools = {
 
 class ChatRequest(BaseModel):
     prompt: str
+
+def json_serialize(data):
+    def default(o):
+        if isinstance(o, decimal.Decimal):
+            return float(o)
+        if isinstance(o, (datetime.date, datetime.datetime)):
+            return o.isoformat()
+        raise TypeError(f"Type not serializable: {type(o)}")
+    
+    return json.loads(json.dumps(data, default=default))
+
 
 @router.post("/chat")
 def chat_with_gemini(request: ChatRequest, db: Session = Depends(get_db)): 
@@ -58,12 +70,13 @@ def chat_with_gemini(request: ChatRequest, db: Session = Depends(get_db)):
             function_args['db'] = db
             # Call local Python function with the arguments
             function_result = function_to_call(**function_args)
-            
+
+            serializable_function_result = json_serialize(function_result)
             #STEP 4: Send the function's result back to the model
             final_response = chat.send_message(
                 message=types.Part.from_function_response(
                     name=function_name,
-                    response=function_result  # Send the dictionary back
+                    response=serializable_function_result
                 )
             )
             
