@@ -46,3 +46,9 @@ General Rules:
 - Maintain a professional care home tone—empathetic, clear, and factual.
 - Never display raw JSON, technical data, or tool syntax.
 """
+
+aws_system_instructions = [
+    {
+        "text":system_instructions
+    }
+]

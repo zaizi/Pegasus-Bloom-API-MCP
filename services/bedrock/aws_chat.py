@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from db.dependencies import get_db
 from declarations.aws_tool_declarations import tool_specifications
-from config import system_instructions
+from config import aws_system_instructions
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import logging
@@ -53,7 +53,7 @@ def chat_with_aws(request: ChatRequest, db: Session = Depends(get_db)):
         response = brt.converse(
             modelId=model_id,
             messages=messages,
-            system=system_instructions,
+            system=aws_system_instructions,
             toolConfig=tool_specifications 
         )
 
@@ -117,7 +117,7 @@ def chat_with_aws(request: ChatRequest, db: Session = Depends(get_db)):
             response = brt.converse(
                 modelId=model_id,
                 messages=messages,
-                system=system_instructions,
+                system=aws_system_instructions,
                 toolConfig=tool_specifications
             )
             response_message = response['output']['message']
