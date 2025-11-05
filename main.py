@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from db.database import engine, Base
 from routers import dashboard, notes, mood, accidents, report_generation
 from services.gemini import gemini
+from services.bedrock import aws_chat
 from fastapi_mcp import FastApiMCP
 
 Base.metadata.create_all(bind=engine)
@@ -16,6 +17,7 @@ app.include_router(notes.router)
 app.include_router(mood.router)
 app.include_router(dashboard.router)
 app.include_router(gemini.router)
+app.include_router(aws_chat.router)
 app.include_router(accidents.router)
 app.include_router(report_generation.router)
 

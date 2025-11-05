@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db.dependencies import get_db
 from google.genai import types, Client
-from declarations.tool_declarations import get_accident_count_tool, generate_report_tool
+from declarations.gemini_tool_declarations import get_accident_count_tool, generate_report_tool
 from routers.accidents import get_accidents_count
 from routers.report_generation import generate_service_user_report
 from config import system_instructions
@@ -36,12 +36,12 @@ def json_serialize(data):
     return json.loads(json.dumps(data, default=default))
 
 
-@router.post("/chat")
+@router.post("/gemini_chat/")
 def chat_with_gemini(request: ChatRequest, db: Session = Depends(get_db)): 
     try:
-        api_key = os.getenv("LLM_API_KEY")
+        api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
-            raise HTTPException(status_code=500, detail="LLM_API_KEY not set")
+            raise HTTPException(status_code=500, detail="GEMINI_API_KEY not set")
         
         config = types.GenerateContentConfig(tools=[tools], system_instruction=system_instructions)
         with Client(api_key=api_key) as client:

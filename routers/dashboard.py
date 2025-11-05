@@ -4,15 +4,10 @@ from sqlalchemy.orm import Session, aliased
 from sqlalchemy import and_, Date, text
 from typing import Optional, List
 from db.dependencies import get_db
-from db.models import (
-    ServiceUserRedacted as ServiceUser,
-    DailyNoteAccidentsIncidentsRedacted as AccidentsIncidents,
-    DailyNoteMood as Mood,
-)
+from db.models import ServiceUserRedacted as ServiceUser, DailyNoteAccidentsIncidentsRedacted as AccidentsIncidents, DailyNoteMood as Mood
+
 
 router = APIRouter()
-
-
 @router.get("/dash_data_model/", tags=["dashboard"])
 def get_dashboard_data_model(
     db: Session = Depends(get_db),
@@ -180,14 +175,16 @@ def get_root_cause_data(
             FROM dailynote_accidentsincidents_redacted
             GROUP BY service_user_id, day
         )
-        SELECT u.service_user_id, d.day,
-            COALESCE(a.total_accidents, 0) AS total_accidents,
-            COALESCE(a.aggressive_incidents, 0) AS aggressive_incidents,
-            COALESCE(p.total_bowel_movements, 0) AS total_bowel_movements,
-            COALESCE(p.total_urine_passed, 0) AS total_urine_passed,
-            COALESCE(p.total_brush_teeth, 0) AS total_brush_teeth,
-            COALESCE(l.count_leisure_activity_on_day, 0) AS count_leisure_activity_on_day,
-            COALESCE(nm.woke_at_night, 0) AS woke_at_night
+        SELECT 
+        u.service_user_id, 
+        d.day,
+        COALESCE(a.total_accidents, 0) AS total_accidents,
+        COALESCE(a.aggressive_incidents, 0) AS aggressive_incidents,
+        COALESCE(p.total_bowel_movements, 0) AS total_bowel_movements,
+        COALESCE(p.total_urine_passed, 0) AS total_urine_passed,
+        COALESCE(p.total_brush_teeth, 0) AS total_brush_teeth,
+        COALESCE(l.count_leisure_activity_on_day, 0) AS count_leisure_activity_on_day,
+        COALESCE(nm.woke_at_night, 0) AS woke_at_night
         FROM users u
         CROSS JOIN date_series d
         LEFT JOIN accident_model a ON a.service_user_id = u.service_user_id AND a.day = d.day
