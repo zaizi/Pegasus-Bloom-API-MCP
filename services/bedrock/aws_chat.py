@@ -8,6 +8,7 @@ from declarations.aws_tool_declarations import tool_specifications
 from config import aws_system_instructions
 from pydantic import BaseModel
 from dotenv import load_dotenv
+import json, decimal, datetime
 import logging
 
 load_dotenv()
@@ -23,11 +24,21 @@ available_tools = {
     "generate_service_user_report": generate_service_user_report,
 }
 
+def json_serialize(data):
+    def default(o):
+        if isinstance(o, decimal.Decimal):
+            return float(o)
+        if isinstance(o, (datetime.date, datetime.datetime)):
+            return o.isoformat()
+        raise TypeError(f"Type not serializable: {type(o)}")
+    
+    return json.loads(json.dumps(data, default=default))
+
 
 #Boto3 Client & Model Config
 try:
     brt = boto3.client(service_name="bedrock-runtime", region_name="eu-west-2")
-    model_id = "meta.llama3-70b-instruct-v1:0"
+    model_id = "openai.gpt-oss-20b-1:0"
 except Exception as e:
     logger.error(f"Failed to initialize Boto3 client: {e}")
     brt = None
@@ -91,11 +102,13 @@ def chat_with_aws(request: ChatRequest, db: Session = Depends(get_db)):
                         tool_output = tool_function(db=db, **tool_input)
                     else:
                         tool_output = tool_function(**tool_input)
+
+                    cleaned_tool_output = json_serialize(tool_output)
                     
                     tool_results.append({
                         "toolResult": {
                             "toolUseId": tool_use_id,
-                            "content": [{"json": tool_output}]
+                            "content": [{"json": cleaned_tool_output}]
                         }
                     })
                 except Exception as e:

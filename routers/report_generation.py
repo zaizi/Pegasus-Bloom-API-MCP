@@ -59,7 +59,7 @@ def generate_service_user_report(user_id:int, start_date: str, end_date: str, db
             results = db.execute(query_string, params).mappings().all()
             
             report[report_key] = [dict(row) for row in results]
-            report["today"] = date.today()
+            report["Date Report Generated"] = date.today().isoformat
             
         except Exception as e:
             # If one table fails, log the error but continue building the report

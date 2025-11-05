@@ -1,4 +1,4 @@
-tool_specifications = [
+tool_specifications = {"tools" :[
     {
         "toolSpec": {
             "name": "get_accidents_count",
@@ -48,3 +48,4 @@ tool_specifications = [
         }
     }
 ]
+}
