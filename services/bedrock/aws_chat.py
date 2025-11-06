@@ -1,6 +1,7 @@
 import boto3
 from botocore.exceptions import ClientError
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from db.dependencies import get_db
@@ -43,10 +44,13 @@ except Exception as e:
     logger.error(f"Failed to initialize Boto3 client: {e}")
     brt = None
 
+
+
 class ChatRequest(BaseModel):
     prompt: str
     # can expand this to include a full message history
     # messages: list 
+
 
 
 @router.post("/aws_chat/")
@@ -144,3 +148,113 @@ def chat_with_aws(request: ChatRequest, db: Session = Depends(get_db)):
     except (ClientError, Exception) as e:
        logger.error(f"ERROR: Can't invoke '{model_id}'. Reason: {e}", exc_info=True)
        raise HTTPException(status_code=500, detail=f"Error conversing with model: {str(e)}")
+    
+
+@router.post("/aws_chat_stream/")
+def chat_with_aws_stream(request: ChatRequest, db=Depends(get_db)):
+    if brt is None:
+        raise HTTPException(status_code=500, detail="Boto3 client is not initialized.")
+    
+    messages = [{'role': 'user', 'content': [{'text': request.prompt}]}]
+
+    try:
+        def event_stream():
+            """
+            Handles streaming conversation with AWS Bedrock, including tool calls.
+            Supports partial toolUse deltas.
+            """
+            while True:
+                response_stream = brt.converse_stream(
+                    modelId=model_id,
+                    messages=messages,
+                    system=aws_system_instructions,
+                    toolConfig=tool_specifications
+                )
+
+                full_response = ""
+                current_tool = None
+                tool_use_blocks = []
+                response_message = None
+
+                for event in response_stream["stream"]:
+                    # --- Text token ---
+                    if "contentBlockDelta" in event:
+                        delta = event["contentBlockDelta"]["delta"]
+                        text_part = delta.get("text", "")
+                        full_response += text_part
+                        yield f"data: {text_part}\n\n"
+
+                    # --- Start of a new assistant message ---
+                    elif "messageStart" in event:
+                        response_message = {"role": "assistant", "content": []}
+
+                    # --- Start of a new content block (e.g. toolUse) ---
+                    elif "contentBlockStart" in event:
+                        block = event["contentBlockStart"]["start"]
+                        if "toolUse" in block:
+                            current_tool = block["toolUse"]
+                            current_tool["input"] = {}
+
+                    # --- Streamed deltas updating toolUse input ---
+                    elif "contentBlockDelta" in event and "toolUse" in event["contentBlockDelta"]["delta"]:
+                        tool_delta = event["contentBlockDelta"]["delta"]["toolUse"]
+                        if current_tool:
+                            # Merge in streamed fields
+                            current_tool["input"].update(tool_delta.get("input", {}))
+
+                    # --- End of a toolUse block ---
+                    elif "contentBlockStop" in event:
+                        if current_tool:
+                            tool_use_blocks.append(current_tool)
+                            current_tool = None
+
+                    elif "messageStop" in event:
+                        break
+
+                # --- No tool calls → finish ---
+                if not tool_use_blocks:
+                    yield "data: [END]\n\n"
+                    break
+
+                # --- Execute tool calls ---
+                tool_results = []
+                for tool_use in tool_use_blocks:
+                    tool_name = tool_use.get("name")
+                    tool_input = tool_use.get("input", {})
+                    tool_use_id = tool_use.get("toolUseId")
+
+                    try:
+                        if tool_name not in available_tools:
+                            result = {"error": f"Unknown tool: {tool_name}"}
+                        else:
+                            tool_fn = available_tools[tool_name]
+                            if "db" in tool_fn.__code__.co_varnames:
+                                result = tool_fn(db=db, **tool_input)
+                            else:
+                                result = tool_fn(**tool_input)
+
+                        cleaned = json_serialize(result)
+                        tool_results.append({
+                            "toolResult": {
+                                "toolUseId": tool_use_id,
+                                "content": [{"json": cleaned}]
+                            }
+                        })
+
+                    except Exception as e:
+                        logger.error(f"Error executing tool {tool_name}: {e}", exc_info=True)
+                        tool_results.append({
+                            "toolResult": {
+                                "toolUseId": tool_use_id,
+                                "content": [{"json": {"error": str(e)}}]
+                            }
+                        })
+
+                # Add tool results to conversation
+                messages.append({"role": "user", "content": tool_results})
+
+        return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+    except (ClientError, Exception) as e:
+        logger.error(f"Streaming Error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error conversing with model: {str(e)}")
