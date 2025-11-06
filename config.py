@@ -5,7 +5,7 @@ If you do not need to run tool calls, begin your response with a concise, direct
 
 When generating a report, always follow this format:
 
-# [Report Title: Service User Daily Activity Report]
+# Service User [insert service user id] Daily Activity Report
 
 **Service User ID:** [User ID]  
 **Date of Birth:** [DOB if available]  
