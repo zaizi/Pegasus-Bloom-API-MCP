@@ -121,11 +121,13 @@ def get_root_cause_data(
     user_id: Optional[List[int]] = Query(None),
 ):
     try:
+        # Default date range 
         if not accident_start_date:
-            accident_start_date = (date.today() - timedelta(days=30)).isoformat()
+            accident_start_date = (date.today() - timedelta(days=90)).isoformat()
         if not accident_end_date:
             accident_end_date = date.today().isoformat()
 
+        # Query parameters
         params = {
             "accident_start_date": accident_start_date,
             "accident_end_date": accident_end_date,
@@ -133,65 +135,25 @@ def get_root_cause_data(
 
         user_filter_clause = ""
         if user_id and len(user_id) > 0:
-            user_filter_clause = "WHERE id = ANY(:user_id)"
+            user_filter_clause = "AND service_user_id = ANY(:user_id)"
             params["user_id"] = user_id
 
+        # Simple query against the materialized view
         query_string = f"""
-        WITH date_series AS (
-            SELECT generate_series(
-                CAST(:accident_start_date AS DATE),
-                CAST(:accident_end_date AS DATE),
-                interval '1 day'
-            )::date AS day
-        ),
-        users AS (
-            SELECT id AS service_user_id FROM serviceuser_redacted
-            {user_filter_clause}
-        ),
-        personal_model AS (
-            SELECT service_user_id, CAST(created_on AS DATE) AS day,
-                SUM(bowel_movement) AS total_bowel_movements,
-                SUM(urine_passed) AS total_urine_passed,
-                SUM(brush_teeth) AS total_brush_teeth
-            FROM dailynote_personalcare_redacted
-            GROUP BY service_user_id, day
-        ),
-        leisure_model AS (
-            SELECT service_user_id, CAST(created_on AS DATE) AS day,
-                COUNT(id) AS count_leisure_activity_on_day
-            FROM dailynote_leisureactivity_redacted
-            GROUP BY service_user_id, day
-        ),
-        night_model AS (
-            SELECT service_user_id, CAST(created_on AS DATE) AS day,
-                COUNT(woken_up_during_night) AS woke_at_night
-            FROM dailynote_nightcheck_redacted
-            GROUP BY service_user_id, day
-        ),
-        accident_model AS (
-            SELECT service_user_id, CAST(created_on AS DATE) AS day,
-                COUNT(*) AS total_accidents,
-                SUM(CASE WHEN aggressive = 1 THEN 1 ELSE 0 END) AS aggressive_incidents
-            FROM dailynote_accidentsincidents_redacted
-            GROUP BY service_user_id, day
-        )
         SELECT 
-        u.service_user_id, 
-        d.day,
-        COALESCE(a.total_accidents, 0) AS total_accidents,
-        COALESCE(a.aggressive_incidents, 0) AS aggressive_incidents,
-        COALESCE(p.total_bowel_movements, 0) AS total_bowel_movements,
-        COALESCE(p.total_urine_passed, 0) AS total_urine_passed,
-        COALESCE(p.total_brush_teeth, 0) AS total_brush_teeth,
-        COALESCE(l.count_leisure_activity_on_day, 0) AS count_leisure_activity_on_day,
-        COALESCE(nm.woke_at_night, 0) AS woke_at_night
-        FROM users u
-        CROSS JOIN date_series d
-        LEFT JOIN accident_model a ON a.service_user_id = u.service_user_id AND a.day = d.day
-        LEFT JOIN personal_model p ON p.service_user_id = u.service_user_id AND p.day = d.day
-        LEFT JOIN leisure_model l ON l.service_user_id = u.service_user_id AND l.day = d.day
-        LEFT JOIN night_model nm ON nm.service_user_id = u.service_user_id AND nm.day = d.day
-        ORDER BY u.service_user_id, d.day;
+            service_user_id, 
+            day,
+            total_accidents,
+            aggressive_incidents,
+            total_bowel_movements,
+            total_urine_passed,
+            total_brush_teeth,
+            count_leisure_activity_on_day,
+            woke_at_night
+        FROM root_cause_view
+        WHERE day BETWEEN :accident_start_date AND :accident_end_date
+        {user_filter_clause}
+        ORDER BY service_user_id, day;
         """
 
         results = db.execute(text(query_string), params)
