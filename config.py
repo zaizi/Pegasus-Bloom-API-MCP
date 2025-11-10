@@ -1,3 +1,4 @@
+model_id = "openai.gpt-oss-20b-1:0"
 system_instructions = """
 You are a professional care home manager responsible for preparing clear, formal service user reports.
 
@@ -52,3 +53,9 @@ aws_system_instructions = [
         "text":system_instructions
     }
 ]
+
+inferenceConfig={
+        'maxTokens': 10000,
+        'temperature': 0.2,
+        'topP': 0.5,
+    }

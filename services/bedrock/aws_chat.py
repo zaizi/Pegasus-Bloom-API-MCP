@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from db.dependencies import get_db
 from declarations.aws_tool_declarations import tool_specifications
-from config import aws_system_instructions
+from config import aws_system_instructions, model_id, inferenceConfig
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import json, decimal, datetime
@@ -39,7 +39,7 @@ def json_serialize(data):
 #Boto3 Client & Model Config
 try:
     brt = boto3.client(service_name="bedrock-runtime", region_name="eu-west-2")
-    model_id = "openai.gpt-oss-20b-1:0"
+    model_id = model_id
 except Exception as e:
     logger.error(f"Failed to initialize Boto3 client: {e}")
     brt = None
@@ -69,7 +69,8 @@ def chat_with_aws(request: ChatRequest, db: Session = Depends(get_db)):
             modelId=model_id,
             messages=messages,
             system=aws_system_instructions,
-            toolConfig=tool_specifications 
+            toolConfig=tool_specifications,
+            inferenceConfig = inferenceConfig
         )
 
         response_message = response['output']['message']
@@ -135,7 +136,8 @@ def chat_with_aws(request: ChatRequest, db: Session = Depends(get_db)):
                 modelId=model_id,
                 messages=messages,
                 system=aws_system_instructions,
-                toolConfig=tool_specifications
+                toolConfig=tool_specifications,
+                inferenceConfig = inferenceConfig
             )
             response_message = response['output']['message']
             messages.append(response_message)
