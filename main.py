@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from db.database import engine, Base
-from routers import dashboard, notes, mood, accidents, report_generation
+from routers import dashboard, notes, mood, accidents, report_generation, health_check
 from services.gemini import gemini
 from services.bedrock import aws_chat
 from fastapi_mcp import FastApiMCP
@@ -13,6 +13,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
+app.include_router(health_check.router)
 app.include_router(notes.router)
 app.include_router(mood.router)
 app.include_router(dashboard.router)

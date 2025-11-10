@@ -1,0 +1,59 @@
+name: Pegasus-Bloom-Compose
+services:
+  db:
+    image: postgres:15
+    hostname: db
+    container_name: pegasus-bloom-postgres_db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost -p 5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      # ../ = project root
+      - ../Database/init_scripts:/docker-entrypoint-initdb.d
+      - ../Database/data:/docker-entrypoint-initdb.d/data
+      - db-data:/var/lib/postgresql/data
+
+  api:
+    build: . #Parent directory
+    container_name: fastapi_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000" 
+    volumes:
+      - .:/app  
+    environment:
+      DATABASE_URL: "postgresql+psycopg2://${POSTGRES_USER}:${DB_PASSWORD}@${DB_HOST}:5432/${POSTGRES_DB}"
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      AWS_BEARER_TOKEN_BEDROCK: ${AWS_BEARER_TOKEN_BEDROCK}
+      frontend_url: http://frontend:8501
+    depends_on:
+      db:
+        condition: service_healthy
+    #Healthcheck depends on endpoint being in the API
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build: ../Frontend
+    container_name: streamlit_frontend
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    environment:
+      BASE_API_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    
+volumes:
+  db-data:
