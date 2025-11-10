@@ -58,7 +58,7 @@ class ServiceUserRedacted(Base):
     track_fluid = Column(BigInteger)
     flag_bowel = Column(BigInteger)
     age = Column(Double)
-    LOS_days = Column(Double)
+    los_days = Column(Double)
 
 class DailyNoteMedicationRedacted(Base):
     __tablename__ = 'dailynote_medication_redacted'

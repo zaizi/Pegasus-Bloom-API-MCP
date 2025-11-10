@@ -26,27 +26,27 @@ def get_dashboard_data_model(
         query = (
             db.query(
                 ServiceUser.id.label("service_user_id"),
-                AccidentsIncidents.id.label("accident_id"),
-                AccidentsIncidents.created_on.label("aai_created_on"),
                 ServiceUser.start_date,
                 ServiceUser.end_date,
                 ServiceUser.dob,
+                ServiceUser.age,
                 ServiceUser.min_fluid,
                 ServiceUser.track_fluid,
                 ServiceUser.flag_bowel,
-                ServiceUser.age,
-                AccidentsIncidents.transformer_incident_subject.label("incident_category"),
+                AccidentsIncidents.id.label("accident_id"),
+                AccidentsIncidents.created_on.label("aai_created_on"),
                 AccidentsIncidents.incident_time,
+                 AccidentsIncidents.transformer_incident_subject.label("incident_category"),
                 AccidentsIncidents.aggressive,
                 AccidentsIncidents.toward_su,
                 AccidentsIncidents.toward_staff,
                 AccidentsIncidents.call_police,
                 AccidentsIncidents.call_paramedics,
                 AccidentsIncidents.call_family,
-                AccidentsIncidents.rating_1,
-                AccidentsIncidents.rating_2,
                 Mood1.name.label("first_mood"),
+                AccidentsIncidents.rating_1,
                 Mood2.name.label("second_mood"),
+                AccidentsIncidents.rating_2,
             )
             .join(AccidentsIncidents, AccidentsIncidents.service_user_id == ServiceUser.id)
             .outerjoin(Mood1, Mood1.id == AccidentsIncidents.mood_1_id)

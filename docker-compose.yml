@@ -26,8 +26,8 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000" 
-    volumes:
-      - .:/app  
+    #volumes:
+    #  - .:/app  
     environment:
       DATABASE_URL: "postgresql+psycopg2://${POSTGRES_USER}:${DB_PASSWORD}@${DB_HOST}:5432/${POSTGRES_DB}"
       GEMINI_API_KEY: ${GEMINI_API_KEY}
@@ -40,7 +40,7 @@ services:
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8000/health"]
       interval: 15s
-      timeout: 5s
+      timeout: 10s
       retries: 5
 
   frontend:

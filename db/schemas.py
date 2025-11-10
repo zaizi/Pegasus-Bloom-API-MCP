@@ -10,7 +10,7 @@ class DashDataModel(BaseModel):
     track_fluid: Optional[int] = None
     flag_bowel: Optional[int] = None
     age: Optional[float] = None
-    LOS_days: Optional[float] = None
+    los_days: Optional[float] = None
     accident_id: Optional[int] = None
     incident_category: Optional[str] = None
     aai_created_on: Optional[str] = None
@@ -91,7 +91,7 @@ class ServiceUserRedactedBase(BaseModel):
     track_fluid: Optional[int] = None
     flag_bowel: Optional[int] = None
     age: Optional[float] = None
-    LOS_days: Optional[float] = None
+    los_days: Optional[float] = None
 
 class ServiceUserRedacted(ServiceUserRedactedBase):
     id: int
