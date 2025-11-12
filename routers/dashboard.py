@@ -149,7 +149,12 @@ def get_root_cause_data(
             total_urine_passed,
             total_brush_teeth,
             count_leisure_activity_on_day,
-            woke_at_night
+            woke_at_night,
+            total_meals,
+            total_breakfast,
+            total_lunch,
+            total_dinner,
+            total_snack
         FROM root_cause_view
         WHERE day BETWEEN :accident_start_date AND :accident_end_date
         {user_filter_clause}
