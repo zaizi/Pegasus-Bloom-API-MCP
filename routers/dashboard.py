@@ -25,33 +25,33 @@ def get_dashboard_data_model(
 
         query = (
             db.query(
-                ServiceUser.id.label("service_user_id"),
-                ServiceUser.start_date,
-                ServiceUser.end_date,
-                ServiceUser.dob,
-                ServiceUser.age,
-                ServiceUser.min_fluid,
-                ServiceUser.track_fluid,
-                ServiceUser.flag_bowel,
-                AccidentsIncidents.id.label("accident_id"),
-                AccidentsIncidents.created_on.label("aai_created_on"),
-                AccidentsIncidents.incident_time,
-                 AccidentsIncidents.transformer_incident_subject.label("incident_category"),
-                AccidentsIncidents.aggressive,
-                AccidentsIncidents.toward_su,
-                AccidentsIncidents.toward_staff,
-                AccidentsIncidents.call_police,
-                AccidentsIncidents.call_paramedics,
-                AccidentsIncidents.call_family,
-                Mood1.name.label("first_mood"),
-                AccidentsIncidents.rating_1,
-                Mood2.name.label("second_mood"),
-                AccidentsIncidents.rating_2,
+                ServiceUser.id.label("Service User ID"),
+                ServiceUser.start_date.label("Start Date"),
+                ServiceUser.end_date.label("End Date"),
+                ServiceUser.dob.label("Date of Birth"),
+                ServiceUser.age.label("Age"),
+                ServiceUser.min_fluid.label("Minimum Fluids (mL)"),
+                ServiceUser.track_fluid.label("Track Fluid"),
+                ServiceUser.flag_bowel.label("Flag Bowel"),
+                AccidentsIncidents.id.label("accident_id").label("Accident ID"),
+                AccidentsIncidents.created_on.label("aai_created_on").label("Accident Record Date"),
+                AccidentsIncidents.incident_time.label("Incident Time"),
+                 AccidentsIncidents.transformer_incident_subject.label("incident_category").label("Incident Category"),
+                AccidentsIncidents.aggressive.label("Aggressive"),
+                AccidentsIncidents.toward_su.label("Toward Service User(s)"),
+                AccidentsIncidents.toward_staff.label("Toward Staff"),
+                AccidentsIncidents.call_police.label("Police Called"),
+                AccidentsIncidents.call_paramedics.label("Paramedics Called"),
+                AccidentsIncidents.call_family.label("Family Called"),
+                Mood1.name.label("first_mood").label("First Mood"),
+                AccidentsIncidents.rating_1.label("Rating 1"),
+                Mood2.name.label("second_mood").label("Second Mood"),
+                AccidentsIncidents.rating_2.label("Rating 2"),
             )
             .join(AccidentsIncidents, AccidentsIncidents.service_user_id == ServiceUser.id)
             .outerjoin(Mood1, Mood1.id == AccidentsIncidents.mood_1_id)
             .outerjoin(Mood2, Mood2.id == AccidentsIncidents.mood_2_id)
-            .filter(ServiceUser.age > 0)
+            .filter(ServiceUser.age >= 18)
         )
 
         filters = []
@@ -96,7 +96,6 @@ def get_all_user_ids(db: Session = Depends(get_db),):
         user_ids = [r[0] for r in results]
         return user_ids
 
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database query error: {e}")
     
@@ -107,8 +106,6 @@ def get_all_accident_categories(db: Session = Depends(get_db),):
         results = query.all()
         categories = [r[0] for r in results]
         return categories
-
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database query error: {e}")
 

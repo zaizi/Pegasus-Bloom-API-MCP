@@ -15,7 +15,6 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      # ../ = project root
       - ../Database/init_scripts:/docker-entrypoint-initdb.d
       - ../Database/data:/docker-entrypoint-initdb.d/data
       - db-data:/var/lib/postgresql/data
