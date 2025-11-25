@@ -9,14 +9,15 @@ db_username = os.getenv("POSTGRES_USER")
 db_password = os.getenv("DB_PASSWORD")
 database_name= os.getenv("POSTGRES_DB")
 db_host = os.getenv("DB_HOST", "db")
+db_port = os.getenv("DB_PORT", "db")
 DBPASS = os.getenv("DBPASS", None)
 
-if DBPASS is None:
+if DBPASS is None:  #environment variable set in AWS. Added here so this knows to check if it is running locally or in "prod"
     DATABASE_URL = os.getenv("DATABASE_URL")
     if DATABASE_URL is None:
         raise ValueError("DATABASE_URL environment variable is not set")
 else:
-    DATABASE_URL = f"postgresql+psycopg2://{db_username}:{DBPASS}@{db_host}:5432/{database_name}"
+    DATABASE_URL = f"postgresql+psycopg2://{db_username}:{DBPASS}@{db_host}:{db_port}/{database_name}"
 
 # Create the SQLAlchemy engine
 engine = create_engine(DATABASE_URL)
