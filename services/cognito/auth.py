@@ -5,7 +5,7 @@ from os import getenv
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-aws_region = getenv(key="aws_region", default="eu-east-2")
+aws_region = getenv(key="aws_region", default="eu-west-2")
 userPoolId = getenv(key="userPoolId", default=None)
 client_id = getenv(key="client_id", default=None)
 
