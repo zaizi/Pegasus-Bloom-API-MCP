@@ -2,8 +2,10 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from db.dependencies import get_db
+from services.cognito.auth import auth
 
-router = APIRouter()
+auth_dep = Depends(auth.claim(Depends(auth.scope(["email", "openid"]))))
+router = APIRouter(dependencies=auth_dep)
 
 @router.get("/get_accidents_count/", tags=["tools"])
 def get_accidents_count(start_date: str, end_date: str, db: Session = Depends(get_db)):

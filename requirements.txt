@@ -1,12 +1,15 @@
+aiofile==3.9.0
 annotated-types==0.7.0
 anyio==4.11.0
 appnope==0.1.4
 asttokens==3.0.0
+async-lru==2.0.5
 attrs==25.4.0
 Authlib==1.6.5
 boto3==1.40.66
 botocore==1.40.66
 cachetools==6.2.1
+caio==0.9.24
 certifi==2025.10.5
 cffi==2.0.0
 charset-normalizer==3.4.4
@@ -24,6 +27,7 @@ email-validator==2.3.0
 exceptiongroup==1.3.0
 executing==2.2.1
 fastapi==0.117.1
+fastapi-cognito==2.9.0
 fastapi-mcp==0.4.0
 fastmcp==2.12.5
 google-api-core==2.26.0
@@ -43,6 +47,7 @@ ipython_pygments_lexers==1.1.1
 isodate==0.7.2
 jedi==0.19.2
 jmespath==1.0.1
+joserfc==1.5.0
 jsonschema==4.25.1
 jsonschema-path==0.3.4
 jsonschema-specifications==2025.9.1

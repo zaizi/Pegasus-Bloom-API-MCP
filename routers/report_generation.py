@@ -4,9 +4,11 @@ from sqlalchemy import text
 from db.dependencies import get_db
 from typing import  Dict, Any
 from datetime import date
+from services.cognito.auth import auth
 import logging
 
-router = APIRouter()
+auth_dep = Depends(auth.claim(Depends(auth.scope(["email", "openid"]))))
+router = APIRouter(dependencies=auth_dep)
 logger = logging.getLogger(__name__)
 
 @router.get("/generate_service_user_report", tags=["tools"])
