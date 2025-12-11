@@ -1,7 +1,9 @@
 from fastapi_cloudauth.cognito import Cognito
+from fastapi import Depends
 from dotenv import load_dotenv
 import logging
 from os import getenv
+
 load_dotenv()
 logger = logging.getLogger(__name__)
 
@@ -14,3 +16,4 @@ auth = Cognito(
     userPoolId=userPoolId,
     client_id=client_id
 )
+auth_dep = Depends(auth.claim())

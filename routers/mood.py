@@ -4,10 +4,10 @@ from typing import List, Optional
 import db.models as models
 import db.schemas as schemas
 from db.dependencies import get_db
-from services.cognito.auth import auth
+from services.cognito.auth import auth_dep
 
-auth_dep = Depends(auth.claim(Depends(auth.scope(["email", "openid"]))))
-router = APIRouter(dependencies=auth_dep)
+
+router = APIRouter(dependencies=[auth_dep])
 
 @router.get("/moods/", response_model=List[schemas.DailyNoteMood])
 def read_moods(skip: Optional[int] = None, limit: Optional[int] = None, db: Session = Depends(get_db)):

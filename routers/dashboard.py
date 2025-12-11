@@ -5,10 +5,10 @@ from sqlalchemy import and_, Date, text
 from typing import Optional, List
 from db.dependencies import get_db
 from db.models import ServiceUserRedacted as ServiceUser, DailyNoteAccidentsIncidentsRedacted as AccidentsIncidents, DailyNoteMood as Mood
-from services.cognito.auth import auth
+from services.cognito.auth import auth_dep
 
-auth_dep = Depends(auth.claim(Depends(auth.scope(["email", "openid"]))))
-router = APIRouter(dependencies=auth_dep)
+
+router = APIRouter(dependencies=[auth_dep])
 
 @router.get("/dash_data_model/", tags=["dashboard"])
 def get_dashboard_data_model(
