@@ -25,6 +25,8 @@ def generate_service_user_report(user_id:int, start_date: str, end_date: str, db
     # Use mappings().first() to get a dict-like object, or None if not found
     user_result = db.execute(user_query, {"user_id": user_id}).mappings().first()
 
+    if not user_result:
+        return {"report": f"No data available for user_id {user_id}"}
 
     # This is the base report object we will build
     report: Dict[str, Any] = {"service_user": dict(user_result)}
@@ -67,6 +69,4 @@ def generate_service_user_report(user_id:int, start_date: str, end_date: str, db
             logger.error(f"Error querying table {table_name}: {e}")
             report[report_key] = {"error": f"Failed to retrieve data from {table_name}."}
 
-    if not report:
-        return {"report": "No data available"}
     return report
